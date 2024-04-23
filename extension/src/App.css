@@ -1,0 +1,11 @@
+.App {
+  color: white;
+  text-align: center;
+}
+
+.container {
+  width: auto; 
+  height: auto;
+  background-color: green;
+
+}
