@@ -13,8 +13,9 @@ collection = db["links"]
 counter_collection = db["counter"]
 
 # Ensure the counter collection has an initial document
+# Counter is to co-relate between fiass index and mongo document index
 if counter_collection.count_documents({}) == 0:
-    counter_collection.insert_one({"_id": "link_id", "sequence_value": 0})
+    counter_collection.insert_one({"_id": "link_id", "sequence_value": -1})
 
 
 def get_next_sequence_value(sequence_name):
