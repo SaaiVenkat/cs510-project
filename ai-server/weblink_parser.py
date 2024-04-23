@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def extract(url):
+def extract_web_link(url):
     try:
         # Fetch the blog post
         response = requests.get(url)
@@ -39,16 +39,16 @@ def extract(url):
 
 
 # Fetch the web page
-url = "https://www.kdnuggets.com/2019/01/approaches-text-summarization-overview.html"
-blog_data = extract(url)
-if blog_data:
-    print("Title:", blog_data["title"])
-    print("\nMeta tags:")
-    for name, content in blog_data["meta_tags"].items():
-        print(f"{name}: {content}")
-    print("\nText content:", blog_data["text_content"])
-    print("\nLinks:")
-    for link in blog_data["links"]:
-        print(link)
-else:
-    print("Failed to extract blog data.")
+# url = "https://www.kdnuggets.com/2019/01/approaches-text-summarization-overview.html"
+# blog_data = extract_web_link(url)
+# if blog_data:
+#     print("Title:", blog_data["title"])
+#     print("\nMeta tags:")
+#     for name, content in blog_data["meta_tags"].items():
+#         print(f"{name}: {content}")
+#     print("\nText content:", blog_data["text_content"])
+#     print("\nLinks:")
+#     for link in blog_data["links"]:
+#         print(link)
+# else:
+#     print("Failed to extract blog data.")
