@@ -4,7 +4,8 @@
     "name": "React Chrome Extension",
     "description": "This is a Chrome extension built with React and TypeScript",
     "permissions": [
-        "bookmarks"
+        "bookmarks", 
+        "tabs"
     ],
     "action": {
         "default_popup": "js/index.html",
