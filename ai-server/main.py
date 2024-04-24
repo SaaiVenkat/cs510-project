@@ -4,6 +4,7 @@ from weblink_parser import extract_web_link
 from pymongo import MongoClient, ReturnDocument
 import os
 import json
+from threading import Thread, Lock
 
 app = Flask(__name__)
 
@@ -27,20 +28,10 @@ def get_next_sequence_value(sequence_name):
     return result["sequence_value"]
 
 
-# Define a POST route to handle string input
-@app.route("/save_bookmark", methods=["POST"])
-def process_string():
-    # Get the string from the request body
-    data = request.get_json()
-
-    # Check if the request contains a 'string' field
-    if "link" not in data:
-        return jsonify({"error": "Missing string field"}), 400
-
-    # Extract the string from the request data
-    web_link = data["link"]
-    web_link_data = extract_web_link(web_link)
+def save_bookmark(bookmark):
+    print("Processing bookmark:", bookmark)
     # taking content from the web link
+    web_link_data = extract_web_link(bookmark)
     # Assign topics to bookmark content
     topic_embeddings = make_doc_to_embedding(web_link_data["text_content"])
 
@@ -52,9 +43,9 @@ def process_string():
     # Store link data, embedding, and metadata in MongoDB
     document = {
         "_id": link_id,
-        "link": web_link,
-        "embedding": topic_embeddings.tolist(),  # Convert NumPy array to Python list
-        "metadata": {  # Add any additional metadata you want to store
+        "link": bookmark,
+        "embedding": topic_embeddings.tolist(),  # Convert NumPy array to Python list to store in mongo
+        "metadata": {
             "title": web_link_data["title"],
             "meta_tags": web_link_data["meta_tags"],
             "links": web_link_data["links"],
@@ -62,21 +53,65 @@ def process_string():
         },
     }
     collection.insert_one(document)
-    # Return the processed string in the response
+    return link_id
+
+
+lock = Lock()
+
+
+# Route to save multiple bookmarks
+@app.route("/bookmarks", methods=["POST"])
+def process_bookmarks():
+    data = request.get_json()
+
+    if "links" not in data:
+        return jsonify({"error": "Missing 'bookmarks' field"}), 400
+
+    bookmarks = data["links"]
+
+    def process_bookmark(bookmark):
+        save_bookmark(bookmark)
+
+    # Function to process bookmarks with locking
+    def process_bookmarks_with_lock(bookmarks):
+        lock.acquire()
+
+        try:
+            for bookmark in bookmarks:
+                process_bookmark(bookmark)
+        finally:
+            lock.release()
+
+    thread = Thread(target=process_bookmarks_with_lock, args=(bookmarks,))
+    thread.start()
+
+    return jsonify({"success": True, "message": "Bookmarks processing started"}), 200
+
+
+# Route to save single bookmark
+@app.route("/bookmark", methods=["POST"])
+def process_string():
+    data = request.get_json()
+
+    if "link" not in data:
+        return jsonify({"error": "Missing string field"}), 400
+
+    web_link = data["link"]
+
+    link_id = save_bookmark(web_link)
     return jsonify({"success": True, "documentCount": link_id + 1}), 200
 
 
+# Route to query user bookmarks
 @app.route("/query", methods=["GET"])
 def query():
     # Get the value of the 'q' query parameter
     query_param = request.args.get("q")
     print(query_param)
 
-    # Check if the 'q' parameter is missing
     if query_param is None:
         return jsonify({"error": "Missing query parameter"}), 400
 
-    # Process the query (replace with your logic)
     query_embedding = make_doc_to_embedding(query_param)
     distances, indices = cosine_similarity(query_embedding)
 
@@ -91,24 +126,19 @@ def query():
             list.append(indices[i])
 
     documents = collection.find({"_id": {"$in": list}}, {"link": 1, "_id": 0})
-    # Extract the "link" attribute from each document and create a list of dictionaries
     links = [doc["link"] for doc in documents]
 
     # Convert the list of dictionaries to a JSON string
     links_json = json.dumps(links)
-    # Return the processed query in the response
     return jsonify({"documents": links_json}), 200
 
 
+# Route to hard reset the entire application
 @app.route("/reset", methods=["GET"])
 def reset():
 
-    # Specify the file path
     file_path = "./index"
-
-    # Check if the file exists
     if os.path.exists(file_path):
-        # Delete the file
         os.remove(file_path)
         print(f"File '{file_path}' deleted successfully.")
     else:
