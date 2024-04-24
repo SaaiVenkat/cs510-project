@@ -1,3 +1,4 @@
 .venv
 ai-server/__pycache__
 ai-server/index
+extension/node_modules
