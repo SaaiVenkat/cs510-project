@@ -1,0 +1,86 @@
+from pymongo import MongoClient
+from utils import MongoDB
+from bson.objectid import ObjectId
+
+
+mongodb = MongoDB()
+db = mongodb.get_database("bert")
+document_collection = db["links"]
+
+
+class Metadata:
+    def __init__(
+        self, title, meta_tags, links, text_content, description, preview_image
+    ):
+        self.title = title
+        self.meta_tags = meta_tags
+        self.links = links
+        self.text_content = text_content
+        self.description = description
+        self.preview_image = preview_image
+
+    def to_json(self):
+        return {
+            "title": self.title,
+            "meta_tags": self.meta_tags,
+            "links": self.links,
+            "text_content": self.text_content,
+            "description": self.description,
+            "preview_image": self.preview_image,
+        }
+
+
+class Document:
+    def __init__(
+        self,
+        faiss_id,
+        link,
+        embedding,
+        meta: Metadata,
+        id=-1,
+    ):
+        self._id = id
+        self.faiss_id = faiss_id
+        self.link = link
+        self.embedding = embedding
+        self.meta = meta
+
+    def to_json(self):
+        return {
+            "faiss_id": self.faiss_id,
+            "link": self.link,
+            "embedding": self.embedding,
+            "meta": {
+                "title": self.meta.title,
+                "meta_tags": self.meta.meta_tags,
+                "links": self.meta.links,
+                "text_content": self.meta.text_content,
+                "description": self.meta.description,
+                "preview_image": self.meta.preview_image,
+            },
+        }
+
+    def add(self):
+        document_collection.insert_one(self.to_json())
+
+    @staticmethod
+    def findByFaissId(faiss_id):
+        document = document_collection.find_one({"faiss_id": int(faiss_id)})
+        if document:
+            meta_data = Metadata(
+                title=document["meta"]["title"],
+                description=document["meta"]["description"],
+                links=document["meta"]["links"],
+                meta_tags=document["meta"]["meta_tags"],
+                preview_image=document["meta"]["preview_image"],
+                text_content=document["meta"]["text_content"],
+            )
+            return Document(
+                id=document["_id"],
+                faiss_id=int(document["faiss_id"]),
+                embedding=document["embedding"],
+                link=document["link"],
+                meta=meta_data.to_json(),
+            )
+        else:
+            return None
