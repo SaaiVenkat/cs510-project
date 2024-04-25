@@ -12,19 +12,19 @@ function DocumentCards() {
             <Card className="cardContainer">
               {/* Title and tags section */}
               <CardContent className="cardContent">
-                <Typography variant="h5" component="div">
-                  <span className="titleLink" onClick={() => window.open(item.URL, '_blank')}>
-                    {item.title}
-                  </span>
-                </Typography>
-                {/* Render chips for each tag */}
-                <Typography variant="body2">
+                <div className='titleContainer'>
+                  <Typography variant="h5" component="div">
+                    <span className="titleLink" onClick={() => window.open(item.URL, '_blank')}>
+                      {item.title}
+                    </span>
+                  </Typography>
+                </div>
+                <div className='chipContainer'>
                   {item.tags.map((tag, index) => (
-                    <Chip key={index} label={tag} />
+                    <Chip key={index} label={tag} className='chip chipLabel'/>
                   ))}
-                </Typography>
+                </div>
               </CardContent>
-              {/* Favicon image section */}
               <div className="faviconContainer">
                 <img src={item.favicon} alt="Favicon" />
               </div>
