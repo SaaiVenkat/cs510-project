@@ -1,30 +1,39 @@
 import requests
 from bs4 import BeautifulSoup
 from models import Metadata
+import ssl
+from urllib.request import Request, urlopen
 
 
 def extract_web_link(url):
     try:
         # Fetch the blog post
-        response = requests.get(url)
-        response.raise_for_status()
+        hdr = {"User-Agent": "Mozilla/5.0"}
+        req = Request(url, headers=hdr)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        response = urlopen(req, context=context)
 
         # Parse the HTML content
-        soup = BeautifulSoup(response.content, "html.parser")
+        soup = BeautifulSoup(response, "html.parser")
 
         # Extract the title
         title = soup.title.string if soup.title else "No title found"
         description = "No description found"
         image = "No image found"
         # Find all meta tags
-        meta_tags = {
-            tag.get("name", "").strip().lower(): tag.get("content", "").strip()
-            for tag in soup.find_all("meta")
-        }
+        meta_tags = {}
+        for tag in soup.find_all("meta"):
+            if tag.get("name", "").strip():
+                meta_tags[tag.get("name", "").strip()] = tag.get("content", "").strip()
+            elif tag.get("property", "").strip():
+                meta_tags[tag.get("property", "").strip()] = tag.get(
+                    "content", ""
+                ).strip()
+
         for key, value in meta_tags.items():
             if "description" in key:
                 description = value
-            elif "image" in key:
+            elif "image" in key and "image:" not in key:
                 image = value
         # Extract text content from paragraphs
         text_content = " ".join([p.get_text() for p in soup.find_all("p")])
@@ -48,15 +57,15 @@ def extract_web_link(url):
 
 
 # Fetch the web page
-# url = "https://www.kdnuggets.com/2019/01/approaches-text-summarization-overview.html"
-# blog_data = extract_web_link(url)
-# if blog_data:
-#     print("Title:", blog_data.title)
-#     print("Description:", blog_data.description)
-#     print("Image:", blog_data.preview_image)
+url = "https://www.kdnuggets.com/2019/01/approaches-text-summarization-overview.html"
+blog_data = extract_web_link(url)
+if blog_data:
+    print("Title:", blog_data.title)
+    print("Description:", blog_data.description)
+    print("Image:", blog_data.preview_image)
 
 # print("\nMeta tags:")
-# for name, content in blog_data["meta_tags"].items():
+# for name, content in blog_data.meta_tags.items():
 #     print(f"{name}: {content}")
 # print("\nText content:", blog_data["text_content"])
 # print("\nLinks:")
