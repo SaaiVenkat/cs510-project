@@ -29,7 +29,7 @@ class User:
         print(user_data)
         if user_data:
             return User(
-                user_data["username"],
+                user_data["name"],
                 user_data["email"],
                 user_data["g_id"],
                 user_data["picture"],
@@ -38,4 +38,4 @@ class User:
             return None
 
     def to_json(self):
-        return {"username": self.name, "email": self.email, "picture": self.picture}
+        return {"name": self.name, "email": self.email, "picture": self.picture}

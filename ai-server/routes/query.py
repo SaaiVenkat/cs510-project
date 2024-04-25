@@ -7,6 +7,7 @@ import json
 from threading import Thread, Lock
 from utils import helper_print
 from utils import MongoDB
+from models import User
 
 query_bp = Blueprint("query", __name__)
 
@@ -17,13 +18,29 @@ counter_collection = db["counter"]
 
 
 # Route to query user bookmarks
-@query_bp.route("/query", methods=["GET"])
+@query_bp.route("/query", methods=["POST"])
 def query():
+    data = request.get_json()
+
+    if "q" not in data:
+        return jsonify({"error": "Query is missing"}), 400
+
     # Get the value of the 'q' query parameter
-    query_param = request.args.get("q")
-    type_param = request.args.get("type")
-    if query_param is None:
-        return jsonify({"error": "Missing query parameter"}), 400
+    query_param = data["q"]
+    type_param = data["type"]
+    user_id = data["user_id"]
+    u = User.find_by_id(user_id)
+    # Checking if its a valid user so as not process at all if invalid
+    if not u:
+        return jsonify({"success": False, "error": "Something Failed"}), 400
+    if not query_param:
+        documents = collection.find({"user_id": user_id}, {"link": 1, "_id": 0})
+        links = [doc["link"] for doc in documents]
+
+        # Convert the list of dictionaries to a JSON string
+        links_json = json.dumps(links)
+        return jsonify({"documents": links_json}), 200
+
     query_string = query_param
     if type_param == "link":
         query_string = extract_web_link(query_param)
@@ -41,7 +58,9 @@ def query():
         if indices[i] >= 0 and distances[i] < 2:
             list.append(indices[i])
 
-    documents = collection.find({"faiss_id": {"$in": list}}, {"link": 1, "_id": 0})
+    documents = collection.find(
+        {"faiss_id": {"$in": list}, "user_id": user_id}, {"link": 1, "_id": 0}
+    )
     links = [doc["link"] for doc in documents]
 
     # Convert the list of dictionaries to a JSON string

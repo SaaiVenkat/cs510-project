@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from utils import MongoDB
 from bson.objectid import ObjectId
-
+from . import User
 
 mongodb = MongoDB()
 db = mongodb.get_database("bert")
@@ -37,6 +37,7 @@ class Document:
         link,
         embedding,
         meta: Metadata,
+        user_id,
         id=-1,
     ):
         self._id = id
@@ -44,12 +45,14 @@ class Document:
         self.link = link
         self.embedding = embedding
         self.meta = meta
+        self.user_id = user_id
 
     def to_json(self):
         return {
             "faiss_id": self.faiss_id,
             "link": self.link,
             "embedding": self.embedding,
+            "user_id": self.user_id,
             "meta": {
                 "title": self.meta.title,
                 "meta_tags": self.meta.meta_tags,
@@ -61,7 +64,12 @@ class Document:
         }
 
     def add(self):
-        document_collection.insert_one(self.to_json())
+        u = User.find_by_id(self.user_id)
+        if u:
+            document_collection.insert_one(self.to_json())
+            return True
+
+        return False
 
     @staticmethod
     def findByFaissId(faiss_id):
@@ -81,6 +89,7 @@ class Document:
                 embedding=document["embedding"],
                 link=document["link"],
                 meta=meta_data.to_json(),
+                user_id=document["user_id"],
             )
         else:
             return None

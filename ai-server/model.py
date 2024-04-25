@@ -9,15 +9,16 @@ import os
 import nltk
 import ssl
 
-try:
-    _create_unverified_https_context = ssl._create_unverified_context
-except AttributeError:
-    pass
-else:
-    ssl._create_default_https_context = _create_unverified_https_context
+# use this if its throwing an error and comment it out - should ideally be in env level in docket
+# try:
+#     _create_unverified_https_context = ssl._create_unverified_context
+# except AttributeError:
+#     pass
+# else:
+#     ssl._create_default_https_context = _create_unverified_https_context
 
-nltk.download("stopwords")
-nltk.download("punkt")
+# nltk.download("stopwords")
+# nltk.download("punkt")
 
 
 # Function to preprocess text

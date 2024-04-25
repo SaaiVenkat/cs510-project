@@ -4,7 +4,7 @@ from weblink_parser import extract_web_link
 from pymongo import ReturnDocument
 from threading import Thread, Lock
 from utils import MongoDB
-from models import Document
+from models import Document, User
 
 document_bp = Blueprint("document", __name__)
 
@@ -28,7 +28,7 @@ def get_next_sequence_value(sequence_name):
     return result["sequence_value"]
 
 
-def save_bookmark(bookmark):
+def save_bookmark(bookmark, user_id):
     print("Processing bookmark:", bookmark)
     # taking content from the web link
     web_link_data = extract_web_link(bookmark)
@@ -41,20 +41,13 @@ def save_bookmark(bookmark):
     link_id = get_next_sequence_value("link_id")
 
     # Store link data, embedding, and metadata in MongoDB
-    document = Document(link_id, bookmark, topic_embeddings.tolist(), web_link_data)
-    # document = {
-    #     "_id": link_id,
-    #     "link": bookmark,
-    #     "embedding": topic_embeddings.tolist(),  # Convert NumPy array to Python list to store in mongo
-    #     "metadata": {
-    #         "title": web_link_data["title"],
-    #         "meta_tags": web_link_data["meta_tags"],
-    #         "links": web_link_data["links"],
-    #         "text_content": web_link_data["text_content"],
-    #     },
-    # }
-    document.add()
-    return link_id
+    document = Document(
+        link_id, bookmark, topic_embeddings.tolist(), web_link_data, user_id
+    )
+    ret = document.add()
+    if link_id:
+        print("Done processing bookmark:", bookmark)
+    return link_id if ret else None
 
 
 lock = Lock()
@@ -66,12 +59,18 @@ def process_bookmarks():
     data = request.get_json()
 
     if "links" not in data:
-        return jsonify({"error": "Missing 'bookmarks' field"}), 400
-
+        return jsonify({"error": "Missing 'links' field"}), 400
+    if "user_id" not in data:
+        return jsonify({"error": "Missing 'user_id' field"}), 400
     bookmarks = data["links"]
+    user_id = data["user_id"]
+    u = User.find_by_id(user_id)
+    # Checking if its a valid user so as not process at all if invalid
+    if not u:
+        return jsonify({"success": False, "error": "Something Failed"}), 400
 
     def process_bookmark(bookmark):
-        save_bookmark(bookmark)
+        save_bookmark(bookmark, user_id)
 
     # Function to process bookmarks with locking
     def process_bookmarks_with_lock(bookmarks):
@@ -99,7 +98,9 @@ def process_string():
 
     web_link = data["link"]
 
-    link_id = save_bookmark(web_link)
+    link_id = save_bookmark(web_link, data["user_id"])
+    if link_id is None:
+        return jsonify({"success": False, "error": "Something Failed"}), 400
     return jsonify({"success": True, "documentCount": link_id + 1}), 200
 
 
@@ -113,7 +114,6 @@ def get_document_by_id(id):
             "faiss_id": doc_data.faiss_id,
             "url": doc_data.link,
         }
-        print(ret)
         return jsonify(ret), 200
     else:
         return jsonify({"message": "Document not found"}), 404
