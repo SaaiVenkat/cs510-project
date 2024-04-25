@@ -34,12 +34,17 @@ def query():
     if not u:
         return jsonify({"success": False, "error": "Something Failed"}), 400
     if not query_param:
-        documents = collection.find({"user_id": user_id}, {"link": 1, "_id": 0})
-        links = [doc["link"] for doc in documents]
-
-        # Convert the list of dictionaries to a JSON string
-        links_json = json.dumps(links)
-        return jsonify({"documents": links_json}), 200
+        ret = []
+        documents = collection.find({"user_id": user_id})
+        for doc in documents:
+            temp = {
+                "url": doc["link"],
+                "title": doc["meta"]["title"],
+                "preview_image": doc["meta"]["preview_image"],
+                "description": doc["meta"]["description"],
+            }
+            ret.append(temp)
+        return jsonify(ret), 200
 
     query_string = query_param
     if type_param == "link":
@@ -58,11 +63,15 @@ def query():
         if indices[i] >= 0 and distances[i] < 2:
             list.append(indices[i])
 
-    documents = collection.find(
-        {"faiss_id": {"$in": list}, "user_id": user_id}, {"link": 1, "_id": 0}
-    )
-    links = [doc["link"] for doc in documents]
+    documents = collection.find({"faiss_id": {"$in": list}, "user_id": user_id})
+    ret = []
+    for doc in documents:
+        temp = {
+            "url": doc["link"],
+            "title": doc["meta"]["title"],
+            "preview_image": doc["meta"]["preview_image"],
+            "description": doc["meta"]["description"],
+        }
+        ret.append(temp)
 
-    # Convert the list of dictionaries to a JSON string
-    links_json = json.dumps(links)
-    return jsonify({"documents": links_json}), 200
+    return jsonify(ret), 200
