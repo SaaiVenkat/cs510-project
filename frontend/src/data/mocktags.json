@@ -1,0 +1,38 @@
+[
+    {
+      "title": "OpenAI",
+      "favicon": "https://openai.com/favicon.ico",
+      "URL": "https://openai.com",
+      "tags": ["artificial intelligence", "machine learning", "research", "technology", "innovation"]
+    },
+    {
+      "title": "Google",
+      "favicon": "https://www.google.com/favicon.ico",
+      "URL": "https://www.google.com",
+      "tags": ["search", "engine", "technology", "internet", "innovation"]
+    },
+    {
+      "title": "GitHub",
+      "favicon": "https://github.com/favicon.ico",
+      "URL": "https://github.com",
+      "tags": ["code", "version", "control", "collaboration", "development"]
+    },
+    {
+      "title": "Wikipedia",
+      "favicon": "https://en.wikipedia.org/static/favicon/wikipedia.ico",
+      "URL": "https://en.wikipedia.org",
+      "tags": ["encyclopedia", "knowledge", "reference", "information", "community"]
+    },
+    {
+      "title": "Twitter",
+      "favicon": "https://abs.twimg.com/favicons/twitter.ico",
+      "URL": "https://twitter.com",
+      "tags": ["social", "media", "microblogging", "communication", "network"]
+    },
+    {
+      "title": "YouTube",
+      "favicon": "https://www.youtube.com/s/desktop/df61e212/img/favicon_32.png",
+      "URL": "https://www.youtube.com",
+      "tags": ["video", "streaming", "entertainment", "content", "platform"]
+    }
+  ]  
