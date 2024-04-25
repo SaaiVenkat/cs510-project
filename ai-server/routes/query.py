@@ -21,12 +21,14 @@ counter_collection = db["counter"]
 def query():
     # Get the value of the 'q' query parameter
     query_param = request.args.get("q")
-    helper_print(query_param)
-
+    type_param = request.args.get("type")
     if query_param is None:
         return jsonify({"error": "Missing query parameter"}), 400
-
-    query_embedding = make_doc_to_embedding(query_param)
+    query_string = query_param
+    if type_param == "link":
+        query_string = extract_web_link(query_param)
+        query_string = query_string.text_content
+    query_embedding = make_doc_to_embedding(query_string)
     distances, indices = cosine_similarity(query_embedding)
 
     list = []
@@ -35,11 +37,11 @@ def query():
     indices = indices[0]
     distances = distances[0]
     for i in range(len(indices)):
-        print(indices[i])
+        print(indices[i], distances[i])
         if indices[i] >= 0 and distances[i] < 2:
             list.append(indices[i])
 
-    documents = collection.find({"_id": {"$in": list}}, {"link": 1, "_id": 0})
+    documents = collection.find({"faiss_id": {"$in": list}}, {"link": 1, "_id": 0})
     links = [doc["link"] for doc in documents]
 
     # Convert the list of dictionaries to a JSON string
