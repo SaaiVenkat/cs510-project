@@ -3,11 +3,16 @@ import { Grid, Container, Card, CardContent, Typography, Chip } from '@mui/mater
 import mockTagsData from '../data/mocktags.json';
 import './home.css';
 
-function DocumentCards() {
+function DocumentCards({ documents, searchTerm }) {
+  const filteredDocuments = documents || mockTagsData;
   return (
     <Container sx={{ mt: 20, ml: 'auto', mr: 'auto' }}>
       <Grid container spacing={2}>
-        {mockTagsData.map((item, index) => (
+        {filteredDocuments.filter((item) => {
+          const searchTextLower = searchTerm.toLowerCase();
+          return item.title.toLowerCase().includes(searchTextLower) ||
+            item.tags.some((tag) => tag.toLowerCase().includes(searchTextLower));
+        }).map((item, index) => (
           <Grid item xs={4} key={index}>
             <Card className="cardContainer">
               {/* Title and tags section */}
