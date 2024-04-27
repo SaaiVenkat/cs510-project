@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Button, TextField } from '@mui/material';
+import './home.css';
 
 const SearchBar = ({ onSearch }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,16 +13,13 @@ const SearchBar = ({ onSearch }) => {
 
   return (
     <div className="search-container">
-      <input
+      <TextField
         type="text"
         id="search-bar"
         placeholder="What's up?"
         value={searchTerm}
         onChange={handleSearch}
       />
-      <button type="button" id="search-button" onClick={handleSearch}>
-        Search
-      </button>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { GoogleAuth, GoogleLogin, GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
+import { Button } from '@mui/material';
 
 const GoogleLoginButton = () => {
     const login = useGoogleLogin({
@@ -33,7 +34,7 @@ const GoogleLoginButton = () => {
     return (
 
 
-        <button onClick={() => login()}>Sign in with Google 🚀</button>
+        <Button onClick={() => login()} variant='contained' color='primary'>Sign in with Google 🚀</Button>
     );
 };
 
