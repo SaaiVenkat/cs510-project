@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@mui/icons-material": "^5.15.15",
+    "@react-oauth/google": "^0.12.1"
+  }
+}
