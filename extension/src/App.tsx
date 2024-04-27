@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import Navbar from './Navbar';
+import MainContent from './MainContent';
+import Tabs from './Tab';
 
 interface Bookmark {
   id: string;
@@ -9,6 +12,7 @@ interface Bookmark {
 
 const saveBookmark = async (url?: string) => {
   try {
+    
     const response = await fetch('http://localhost:8000/save_bookmark', {
       method: 'POST',
       headers: {
@@ -32,6 +36,13 @@ function App() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
   useEffect(() => {
+    
+    if (chrome.bookmarks) {
+      chrome.bookmarks.getTree((results) => {
+        const processedBookmarks = processBookmarks(results);
+        setBookmarks(processedBookmarks);
+      });
+    }
 
     const processBookmarks = (nodes: chrome.bookmarks.BookmarkTreeNode[]): Bookmark[] => {
       const bookmarks: Bookmark[] = [];
@@ -50,49 +61,20 @@ function App() {
       return bookmarks;
     };
 
-    if (chrome.bookmarks) {
-      chrome.bookmarks.getTree((results) => {
-        const processedBookmarks = processBookmarks(results);
-        setBookmarks(processedBookmarks);
-      });
-    }
-
-    // const onBookmarkCreated = (id: string, bookmark: chrome.bookmarks.BookmarkTreeNode) => {
-    //   setBookmarks((prevBookmarks) => {
-    //     if (prevBookmarks.some((b) => b.id === id)) return prevBookmarks;
-
-    //     if (bookmark.url) {
-    //       return [...prevBookmarks, {
-    //         id: bookmark.id,
-    //         title: bookmark.title,
-    //         url: bookmark.url
-    //       }];
-    //     }
-    //     return prevBookmarks;
-    //   });
-    // }
-
-    const onBookmarkCreated = (id: string, bookmark: chrome.bookmarks.BookmarkTreeNode) => {
-      // Check if the new bookmark has a URL and is not already in the state
-      if (bookmark.url) {
-        saveBookmark(bookmark.url);  // Save the new bookmark via backend call
-      }
-    };
-
-    if (chrome.bookmarks) {
-      chrome.bookmarks.onCreated.addListener(onBookmarkCreated);
-    }
-
-    return () => {
-      if (chrome.bookmarks && chrome.bookmarks.onCreated) {
-        chrome.bookmarks.onCreated.removeListener(onBookmarkCreated);
-      }
-    };
-
   }, []);
 
+  const handleSaveFavorite = async (url?: string) => {
+    try {
+      await saveBookmark(url);
+    } catch (e) {
+    }
+  };
+
   return (
-    <div className="App">
+    <div className="container mx-auto max-w-sm bg-white shadow-lg rounded-lg overflow-hidden">
+      <Navbar />
+      <MainContent onSaveFavorite={handleSaveFavorite}/>
+      <Tabs />
       <h1>Bookmarks</h1>
       <ul>
         {bookmarks.map((bookmark) => (
@@ -100,7 +82,7 @@ function App() {
             <div>
               <h3>{bookmark.title}</h3>
               <p>{bookmark.url}</p>
-              {/* <button onClick={() => saveBookmark(bookmark.url as string)}>Save Bookmark</button> */}
+               {/* <button onClick={() => saveBookmark(bookmark.url as string)}>Save Bookmark</button>  */}
             </div>
           </li>
         ))}
