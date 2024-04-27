@@ -1,16 +1,42 @@
 import React from 'react'
 
-const Card = ({ title, summary, url }) => {
+const Card = ({ title, summary, url, preview_image }) => {
     return (
-        <div class="lg:flex shadow-md rounded-lg max-w-sm">
-            <div class="flex flex-col justify-between py-6 lg:mx-6">
-                <a href="#" class="text-lg font-semibold text-gray-800 hover:underline overflow-hidden truncate max-w-xs whitespace-normal">
-                    {title}
-                </a>
-                <span class="text-sm text-gray-800">{summary}</span>
-                <span class="text-sm text-gray-500"> Saved yesterday</span>
+
+        <div class='flex '>
+            <div class='mx-auto bg-white rounded-3xl shadow-xl'>
+                <div class="grid rounded-3xl max-w-[250px] shadow-sm h-full bg-slate-100  flex-col">
+                    <img
+                        src={preview_image}
+                        width="375"
+                        height="100"
+                        class="rounded-t-3xl justify-center grid h-40 object-cover"
+                    // alt="movie.title"
+                    />
+
+                    <div class="group p-6 grid z-10">
+                        <a
+                            href={url}
+                            class="group-hover:text-cyan-700 font-bold sm:text-lg line-clamp-2"
+                        >
+                            {title}
+                        </a>
+                        {/* <span class="text-slate-400 pt-2 font-semibold">
+
+                            (2023)
+                        </span> */}
+                        <div class="h-20">
+                            <span class="line-clamp-3 py-2 text-sm font-light leading-relaxed">
+                                {summary}
+                            </span>
+                        </div>
+                        <div class=" grid-cols-2 flex group justify-between">
+
+
+                        </div>
+                    </div>
+                </div>
             </div>
-            <img class="object-cover w-32 h-sm rounded-tr-lg rounded-br-lg" src={url} alt="" />
         </div>
 
     )
