@@ -2,3 +2,5 @@
 ai-server/__pycache__
 ai-server/index
 extension/node_modules
+frontend/node_modules
+node_modules
