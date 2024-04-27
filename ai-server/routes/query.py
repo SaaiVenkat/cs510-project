@@ -1,13 +1,9 @@
 from flask import Blueprint, request, jsonify
 from model import make_doc_to_embedding, index_with_faiss, cosine_similarity
 from weblink_parser import extract_web_link
-from pymongo import MongoClient, ReturnDocument
-import os
-import json
-from threading import Thread, Lock
-from utils import helper_print
 from utils import MongoDB
 from models import User
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 query_bp = Blueprint("query", __name__)
 
@@ -18,17 +14,15 @@ counter_collection = db["counter"]
 
 
 # Route to query user bookmarks
-@query_bp.route("/query", methods=["POST"])
+@query_bp.route("/query", methods=["GET"])
+@jwt_required()
 def query():
-    data = request.get_json()
+    user_id = get_jwt_identity()
 
-    if "q" not in data:
-        return jsonify({"error": "Query is missing"}), 400
-
-    # Get the value of the 'q' query parameter
-    query_param = data["q"]
-    type_param = data["type"]
-    user_id = data["user_id"]
+    query_param = request.args.get("q")
+    type_param = request.args.get("type")
+    if query_param is None:
+        return jsonify({"error": "Missing query parameter"}), 400
     u = User.find_by_id(user_id)
     # Checking if its a valid user so as not process at all if invalid
     if not u:

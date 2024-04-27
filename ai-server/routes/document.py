@@ -5,6 +5,7 @@ from pymongo import ReturnDocument
 from threading import Thread, Lock
 from utils import MongoDB
 from models import Document, User
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 document_bp = Blueprint("document", __name__)
 
@@ -55,15 +56,18 @@ lock = Lock()
 
 # Route to save multiple bookmarks
 @document_bp.route("/bookmarks", methods=["POST"])
+@jwt_required()
 def process_bookmarks():
+    user_id = get_jwt_identity()
+    if not user_id:
+        return jsonify({"error": "Not authorized"}), 401
     data = request.get_json()
 
     if "links" not in data:
         return jsonify({"error": "Missing 'links' field"}), 400
-    if "user_id" not in data:
-        return jsonify({"error": "Missing 'user_id' field"}), 400
+    # if "user_id" not in data:
+    #     return jsonify({"error": "Missing 'user_id' field"}), 400
     bookmarks = data["links"]
-    user_id = data["user_id"]
     u = User.find_by_id(user_id)
     # Checking if its a valid user so as not process at all if invalid
     if not u:
@@ -90,15 +94,19 @@ def process_bookmarks():
 
 # Route to save single bookmark
 @document_bp.route("/bookmark", methods=["POST"])
+@jwt_required()
 def process_string():
     data = request.get_json()
+    user_id = get_jwt_identity()
+    if not user_id:
+        return jsonify({"error": "Not authorized"}), 401
 
     if "link" not in data:
         return jsonify({"error": "Missing string field"}), 400
 
     web_link = data["link"]
 
-    link_id = save_bookmark(web_link, data["user_id"])
+    link_id = save_bookmark(web_link, user_id)
     if link_id is None:
         return jsonify({"success": False, "error": "Something Failed"}), 400
     return jsonify({"success": True, "documentCount": link_id + 1}), 200
