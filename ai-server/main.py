@@ -4,7 +4,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "chrome-extension://gpikjpkkifhaiimpmddichlodbnbgnok"}})
 
 # Configure JWT
 app.config["JWT_SECRET_KEY"] = "Intellimark_747"

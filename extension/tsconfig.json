@@ -8,6 +8,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "noImplicitAny": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -23,6 +24,7 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "src"
+    "src",
+    "background.ts"
   ]
 }
