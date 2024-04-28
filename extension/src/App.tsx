@@ -12,11 +12,13 @@ interface Bookmark {
 
 const saveBookmark = async (url?: string) => {
   try {
-    
-    const response = await fetch('http://localhost:8000/save_bookmark', {
+    //const token = localStorage.getItem("token")
+    //console.log("token: ", token)
+    const response = await fetch('http://localhost:8000/bookmark', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        //'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ link: url })
     });
