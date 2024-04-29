@@ -10,24 +10,24 @@ module.exports = {
     module: {
         rules: [
             {
-              test: /\.tsx?$/,
-               use: [
-                 {
-                  loader: "ts-loader",
-                   options: {
-                     compilerOptions: { noEmit: false },
-                    }
-                  }],
-               exclude: /node_modules/,
+                test: /\.tsx?$/,
+                use: [
+                    {
+                        loader: "ts-loader",
+                        options: {
+                            compilerOptions: { noEmit: false },
+                        }
+                    }],
+                exclude: /node_modules/,
             },
             {
-              exclude: /node_modules/,
-              test: /\.css$/i,
-               use: [
-                  "style-loader",
-                  "css-loader",
-                  "postcss-loader"
-               ]
+                exclude: /node_modules/,
+                test: /\.css$/i,
+                use: [
+                    "style-loader",
+                    "css-loader",
+                    "postcss-loader"
+                ]
             },
         ],
     },
@@ -35,6 +35,8 @@ module.exports = {
         new CopyPlugin({
             patterns: [
                 { from: "manifest.json", to: "../manifest.json" },
+                { from: "src/background.js", to: "../background.js" },
+                { from: "src/content.js", to: "../content.js" },
             ],
         }),
         ...getHtmlPlugins(["index"]),
