@@ -36,9 +36,18 @@ const saveBookmark = async (url?: string) => {
 
 function App() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
-
   useEffect(() => {
-    
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.type === 'service_worker_message') {
+        const dataFromServiceWorker = message.data;
+        // Process the message from the service worker
+        console.log('Received message from service worker in App.tsx:', dataFromServiceWorker);
+        // Perform processing or trigger actions in App.tsx based on the message
+      }
+    });
+  }, []);
+  useEffect(() => {
+
     if (chrome.bookmarks) {
       chrome.bookmarks.getTree((results) => {
         const processedBookmarks = processBookmarks(results);
@@ -75,7 +84,7 @@ function App() {
   return (
     <div className="container mx-auto max-w-sm bg-white shadow-lg rounded-lg overflow-hidden">
       <Navbar />
-      <MainContent onSaveFavorite={handleSaveFavorite}/>
+      <MainContent onSaveFavorite={handleSaveFavorite} />
       <Tabs />
       <h1>Bookmarks</h1>
       <ul>
@@ -84,13 +93,13 @@ function App() {
             <div>
               <h3>{bookmark.title}</h3>
               <p>{bookmark.url}</p>
-               {/* <button onClick={() => saveBookmark(bookmark.url as string)}>Save Bookmark</button>  */}
+              {/* <button onClick={() => saveBookmark(bookmark.url as string)}>Save Bookmark</button>  */}
             </div>
           </li>
         ))}
       </ul>
     </div>
-    
+
   );
 }
 
