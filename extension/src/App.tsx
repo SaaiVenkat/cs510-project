@@ -12,6 +12,7 @@ interface Bookmark {
 
 const saveBookmark = async (url, token) => {
   try {
+    console.log('In savebookmark');
     const response = await fetch('http://localhost:8000/bookmark', {
       method: 'POST',
       headers: {
