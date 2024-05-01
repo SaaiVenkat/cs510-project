@@ -37,11 +37,57 @@ const saveBookmark = async (url) => {
 
 };
 
+const fetchBookmarks = (bookmarks) => {
+  let token = localStorage.getItem("token")
+  console.log(" fetch bookmarks")
+  if(token){
+    try{
+      console.log("Adding bookmarks")
+      const response = fetch('http://localhost:8000/bookmarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(bookmarks),
+      })
+      .then(response => response.json())
+      .then(data => console.log('Success:', data))
+      .catch((error) => {
+      console.error('Error:', error);
+      });
+    }
+    catch(error){
+      console.error('Error adding bookmarks:', error);
+    }
+  }
+};
+
+const processBookmarks = (nodes: chrome.bookmarks.BookmarkTreeNode[]): Bookmark[] => {
+  const bookmarks: Bookmark[] = [];
+  nodes.forEach(node => {
+  if (node.url) {
+    bookmarks.push({
+      id: node.id,
+      title: node.title,
+      url: node.url
+    });
+  }
+
+  if (node.children) {
+    bookmarks.push(...processBookmarks(node.children));
+  }}
+  )
+
+  return bookmarks;
+};
+
 
 function App() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [token, setToken] = useState('');
   const tokenref = useRef("")
+  
   useEffect(() => {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.type === 'service_worker_message') {
@@ -55,43 +101,23 @@ function App() {
 
   }, []);
 
-  // Other effects and code remain the same
-
+  const handleFetchBookmarks = () => {
+    console.log("Inside fetchbookmark")
+    if (chrome.bookmarks) {
+      chrome.bookmarks.getTree((results) => {
+        const processedBookmarks = processBookmarks(results);
+        setBookmarks(processedBookmarks);
+        fetchBookmarks(processedBookmarks);
+      });
+    }
+  };
+  
   const handleSaveFavorite = async (url?: string) => {
 
     await saveBookmark(url);
   };
 
-
-
-  // const saveBookmark = async (url?: string) => {
-  //   const [token, setToken] = useState('');
-  //   console.log("In Savebookmark ", localStorageData)
-  //     try {
-  //     chrome.runtime.sendMessage({type: 'getToken'}, response => {
-  //       setToken(response.token);
-  //       console.log('Token received in React:', response.token);
-  //   });
-  //     const response = await fetch('http://localhost:8000/bookmark', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Authorization': `Bearer ${localStorageData}`
-  //       },
-  //       body: JSON.stringify({ link: url })
-  //     });
-
-  //     const result = await response.json();
-  //     if (response.ok) {
-  //       console.log('Bookmark saved successfully:', result);
-  //     } else {
-  //       console.error('Failed to save bookmark:', result.error);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error saving bookmark:', error);
-  //   }
-  // };
-
+  
   // function App() {
   //   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   //   useEffect(() => {
@@ -144,7 +170,7 @@ function App() {
   return (
     <div className="container mx-auto max-w-sm bg-white shadow-lg rounded-lg overflow-hidden">
       <Navbar />
-      <MainContent onSaveFavorite={handleSaveFavorite} />
+      <MainContent onSaveFavorite={handleSaveFavorite} onFetchBookmarks = {handleFetchBookmarks} />
       <Tabs />
       <h1>Bookmarks</h1>
       <ul>

@@ -93,3 +93,29 @@ class Document:
             )
         else:
             return None
+        
+    @staticmethod
+    def findAll():
+        documents_cursor = document_collection.find()  # This returns a cursor to iterate over all documents
+        documents = []
+        for doc in documents_cursor:
+            if doc:
+                meta_data = Metadata(
+                    title=doc["meta"]["title"],
+                    description=doc["meta"]["description"],
+                    links=doc["meta"]["links"],
+                    meta_tags=doc["meta"]["meta_tags"],
+                    preview_image=doc["meta"]["preview_image"],
+                    text_content=doc["meta"]["text_content"],
+                )
+                document = Document(
+                    id=doc["_id"],
+                    faiss_id=int(doc["faiss_id"]),
+                    embedding=doc["embedding"],
+                    link=doc["link"],
+                    meta=meta_data.to_json(),
+                    user_id=doc["user_id"],
+                )
+                documents.append(document)
+        return documents
+
