@@ -1,6 +1,12 @@
-console.log("content script is executing")
+console.log("content script is injected!")
 // Retrieve data from local storage
 const localStorageData = localStorage.getItem("token");
 console.log(localStorageData)
-// Send data to the background script
-chrome.runtime.sendMessage({ localStorageData });
+if (localStorageData) {
+    console.log("sending data to extention")
+    chrome.runtime.sendMessage({ localStorageData });
+} else {
+    console.log("sending empty state to extention")
+    chrome.runtime.sendMessage({ localStorageData: '' });
+}
+

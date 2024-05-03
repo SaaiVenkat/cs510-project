@@ -25,7 +25,7 @@ const GoogleLoginButton = () => {
             .then(profileData => {
                 console.log('User Profile:', profileData);
                 signinUserWithBackend(profileData)
-                dispatch(loginSuccess({ accessToken, expiration: Date.now() + 10 * 60 * 1000, userAvatar: profileData.picture }));
+                dispatch(loginSuccess({ accessToken, expiration: Date.now() + 1000 * 60 * 1000, userAvatar: profileData.picture }));
                 // localStorage.setItem('accessToken', accessToken);
                 // localStorage.setItem('tokenExpiration', Date.now() + 10 * 60 * 1000);
                 console.log(userAvatar);
@@ -37,6 +37,7 @@ const GoogleLoginButton = () => {
     const handleLogout = () => {
         dispatch(logout());
         localStorage.removeItem('accessToken');
+        localStorage.setItem('token', "");
         localStorage.removeItem('tokenExpiration');
     };
     const checkTokenExpiration = () => {

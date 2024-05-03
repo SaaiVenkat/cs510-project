@@ -33,6 +33,9 @@ def save_bookmark(bookmark, user_id):
     print("Processing bookmark:", bookmark)
     # taking content from the web link
     web_link_data = extract_web_link(bookmark)
+    if web_link_data.text_content == "":
+        return None
+
     # Assign topics to bookmark content
     topic_embeddings = make_doc_to_embedding(web_link_data.text_content)
 
@@ -63,17 +66,17 @@ def process_bookmarks():
         return jsonify({"error": "Not authorized"}), 401
     data = request.get_json()
     print("Data ", data)
-    bookmarks = [item['url'] for item in data]
+    bookmarks = [item["url"] for item in data]
     print(bookmarks)
 
     # if "url" not in data:
     #     return jsonify({"error": "Missing 'links' field"}), 400
     # # if "user_id" not in data:
     #     return jsonify({"error": "Missing 'user_id' field"}), 400
-    
+
     u = User.find_by_id(user_id)
-    print("B ", bookmarks, " U ",u )
-    
+    print("B ", bookmarks, " U ", u)
+
     # Checking if its a valid user so as not process at all if invalid
     if not u:
         return jsonify({"success": False, "error": "Something Failed"}), 400
@@ -130,16 +133,16 @@ def get_document_by_id(id):
         return jsonify(ret), 200
     else:
         return jsonify({"message": "Document not found"}), 404
-    
+
+
 @document_bp.route("/getAll", methods=["GET"])
 def get_all_documents():
     docs = Document.findAll()
     if docs:
-        ret = [{
-            "id": str(doc._id),
-            "faiss_id": doc.faiss_id,
-            "url": doc.link
-        } for doc in docs]
+        ret = [
+            {"id": str(doc._id), "faiss_id": doc.faiss_id, "url": doc.link}
+            for doc in docs
+        ]
         return jsonify(ret), 200
     else:
         return jsonify({"message": "No documents found"}), 404
