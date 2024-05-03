@@ -3,11 +3,29 @@ import './App.css';
 import Navbar from './Navbar';
 import MainContent from './MainContent';
 import Tabs from './Tab';
+import Card from './Card';
 
-
+interface Bookmark {
+  id: string;
+  title: string;
+  url?: string;
+}
+interface Reco {
+  preview_image: string;
+  title: string;
+  url?: string;
+  description?: string
+}
 
 function App() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [reco, setReco] = useState<Reco[]>([]);
+  // {
+  //   description: "No description found",
+  //   preview_image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Flag_of_California.svg/640px-Flag_of_California.svg.png",
+  //   title: "California - Wikipedia",
+  //   url: "https://en.wikipedia.org/wiki/California",
+  // }
   const [token, setToken] = useState('');
   const [alertData, setAlertData] = useState({ message: "", type: "" });
 
@@ -35,14 +53,12 @@ function App() {
     console.log(tokenFromStorage)
     if (tokenFromStorage && !token) {
       setToken(tokenFromStorage);
+      tokenref.current = tokenFromStorage
     }
+    fetchReco()
   }, [])
 
-  interface Bookmark {
-    id: string;
-    title: string;
-    url?: string;
-  }
+
 
   const uploadBookmark = async (url) => {
     let token = localStorage.getItem("token")
@@ -70,6 +86,35 @@ function App() {
     }
   };
 
+  const fetchReco = () => {
+    let link = ""
+    let token = localStorage.getItem("token")
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const currentTab = tabs[0];
+      if (currentTab) {
+        link = currentTab.url!
+        fetch(`http://127.0.0.1:8000/query?q=${link}&type=link`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            console.log('Response:', data);
+            if (!data?.msg) {
+              setReco(data)
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+    });
+
+
+  }
   const bulkUploadBookmarks = (bookmarks) => {
     let token = localStorage.getItem("token")
     try {
@@ -147,18 +192,25 @@ function App() {
       )}
       <MainContent setAlertData={setAlertData} onSaveFavorite={handleSaveFavorite} onBulkUploadBookmarks={handleBulkUploadBookmarks} />
       {/* <Tabs /> */}
-      <h1>Bookmarks</h1>
+      {/* <h1>Bookmarks</h1>
       <ul>
         {bookmarks.map((bookmark) => (
           <li key={bookmark.id}>
             <div>
               <h3>{bookmark.title}</h3>
               <p>{bookmark.url}</p>
-              {/* <button onClick={() => saveBookmark(bookmark.url as string)}>Save Bookmark</button>  */}
             </div>
           </li>
         ))}
-      </ul>
+      </ul> */}
+      {reco.length > 0 && (<div className='mb-4'>
+        <h1 className="text-md sm:text-sm font-bold font-marker text-center">Recommendations</h1>
+        <ul className='overflow-y-scroll max-h-64'>
+          {reco.length > 0 && reco.map((result) => (
+            <Card title={result.title} summary={result.description} url={result.url} preview_image={result.preview_image} />
+          ))}
+        </ul>
+      </div>)}
     </div>
 
   );

@@ -81,7 +81,7 @@ const MainContent = ({ setAlertData, onSaveFavorite, onBulkUploadBookmarks }) =>
                     <div className="ml-3 text-gray-700 font-medium">
                         {'Tracking'}
                     </div>
-                    <div className="relative">
+                    <div className="relative ml-2">
                         <input
                             id="toggle"
                             type="checkbox"
